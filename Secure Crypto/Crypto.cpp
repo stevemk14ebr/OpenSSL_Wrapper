@@ -51,6 +51,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	printf("\nAES Decrypted Message:%s\n", DecMsg.c_str());
 	printf("END AES ENCRYPTION TEST\n");
 
+	printf("\n\nBegginning HASH TEST\n");
+	std::string HashResult;
+	CryptoEngine.SHA256("hello hashing", HashResult);
+	printf("Hash Result:%s\n", HashResult.c_str());
 	Sleep(50000);
 	return 0;
 }

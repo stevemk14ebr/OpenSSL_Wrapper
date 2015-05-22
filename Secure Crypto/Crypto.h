@@ -6,6 +6,7 @@
 #include <openssl/rand.h>
 #include <openssl/bio.h>
 #include <openssl/applink.c>
+#include <openssl/sha.h>
 #include <memory>
 #include <algorithm>
 
@@ -68,6 +69,8 @@ public:
 	bool RSAVerifySignature(const unsigned char* MsgHash, size_t MsgHashLen,const unsigned char* Msg, size_t MsgLen,SmartEVP_PKey PublicKey,bool* Authentic);
 	bool RSAVerifySignature(std::string MsgHash, std::string OriginalMsg, SmartEVP_PKey PublicKey, bool* Authentic);
 
+	bool SHA256(const std::string Data, std::string& HashResult);
+
 	bool GenerateRSAKeys();
 	bool ReadRSAKeys();
 	std::string GetServerPrivateKeyTxt();
@@ -100,6 +103,8 @@ private:
 	SmartEVP_MD_CTX m_RSASignCtx;
 	SmartEVP_MD_CTX m_RSAVerifyCtx;
 
+	SmartEVP_MD_CTX m_HashCtx;
+
 	Smart_EVP_CIPHER_CTX m_AESEncCtx;
 	Smart_EVP_CIPHER_CTX m_AESDecCtx;
 
@@ -124,6 +129,8 @@ SecureCrypto::~SecureCrypto()
 }
 bool SecureCrypto::Initialize()
 {
+	OpenSSL_add_all_digests();
+
 	//Initialize Contexts and verify they're not null
 	m_RSASignCtx=SmartEVP_MD_CTX(EVP_MD_CTX_create(),&SmartMD_CTXDel);
 	m_RSAVerifyCtx = SmartEVP_MD_CTX(EVP_MD_CTX_create(), &SmartMD_CTXDel);
@@ -131,7 +138,9 @@ bool SecureCrypto::Initialize()
 	m_AESEncCtx=Smart_EVP_CIPHER_CTX(EVP_CIPHER_CTX_new(),&SmartCIPHER_CTXDel);
 	m_AESDecCtx = Smart_EVP_CIPHER_CTX(EVP_CIPHER_CTX_new(), &SmartCIPHER_CTXDel);
 
-	if (m_RSASignCtx == nullptr || m_AESEncCtx == nullptr || m_RSAVerifyCtx == nullptr || m_AESDecCtx == nullptr)
+	m_HashCtx = SmartEVP_MD_CTX(EVP_MD_CTX_create(), &SmartMD_CTXDel);
+
+	if (m_RSASignCtx == nullptr || m_AESEncCtx == nullptr || m_RSAVerifyCtx == nullptr || m_AESDecCtx == nullptr || m_HashCtx==nullptr)
 		return false;
 	
 	EVP_MD_CTX_init(m_RSASignCtx.get());
@@ -570,4 +579,30 @@ bool SecureCrypto::RSAVerifySignature(std::string MsgHash, std::string OriginalM
 	return RSAVerifySignature((const unsigned char*)MsgHash.c_str(), MsgHash.length(), (const unsigned char*) OriginalMsg.c_str(), OriginalMsg.length(), PublicKey, Authentic);
 }
 
+bool SecureCrypto::SHA256(const std::string Data, std::string& HashResult)
+{
+	const EVP_MD* HashType = EVP_get_digestbyname("SHA256");
+	unsigned char HashResultBuf[EVP_MAX_MD_SIZE];
 
+	if (EVP_DigestInit(m_HashCtx.get(), HashType) <= 0)
+	{
+		printf("Failed init\n");
+		return false;
+	}
+
+	if (EVP_DigestUpdate(m_HashCtx.get(), Data.c_str(), Data.length()) <= 0)
+	{
+		printf("Failed Update\n");
+		return false;
+	}
+
+	unsigned int len;
+	if (EVP_DigestFinal_ex(m_HashCtx.get(), HashResultBuf, &len) <= 0)
+	{
+		printf("Failed Final\n");
+		return false;
+	}
+	EVP_MD_CTX_cleanup(m_HashCtx.get());
+	HashResult = std::string(HashResultBuf, HashResultBuf + len);
+	return true;
+}
