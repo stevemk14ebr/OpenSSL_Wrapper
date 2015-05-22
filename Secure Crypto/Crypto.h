@@ -6,7 +6,6 @@
 #include <openssl/rand.h>
 #include <openssl/bio.h>
 #include <openssl/applink.c>
-#include <openssl/sha.h>
 #include <memory>
 #include <algorithm>
 
