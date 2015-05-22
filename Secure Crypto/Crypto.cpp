@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include "Crypto.h"
 #include <vector>
 
@@ -55,6 +56,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	std::string HashResult;
 	CryptoEngine.SHA256("hello hashing", HashResult);
 	printf("Hash Result:%s\n", HashResult.c_str());
+
 	Sleep(50000);
 	return 0;
 }

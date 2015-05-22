@@ -584,7 +584,7 @@ bool SecureCrypto::SHA256(const std::string Data, std::string& HashResult)
 	const EVP_MD* HashType = EVP_get_digestbyname("SHA256");
 	unsigned char HashResultBuf[EVP_MAX_MD_SIZE];
 
-	if (EVP_DigestInit(m_HashCtx.get(), HashType) <= 0)
+	if (EVP_DigestInit_ex(m_HashCtx.get(), HashType,NULL) <= 0)
 	{
 		printf("Failed init\n");
 		return false;
@@ -602,7 +602,12 @@ bool SecureCrypto::SHA256(const std::string Data, std::string& HashResult)
 		printf("Failed Final\n");
 		return false;
 	}
+	char buf[2];
+	for (int i = 0; i < len; i++)
+	{
+		sprintf(buf, "%02x", HashResultBuf[i]);
+		HashResult += buf;
+	}
 	EVP_MD_CTX_cleanup(m_HashCtx.get());
-	HashResult = std::string(HashResultBuf, HashResultBuf + len);
 	return true;
 }
