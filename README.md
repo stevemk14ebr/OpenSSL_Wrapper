@@ -7,6 +7,8 @@ Provides:
 
 -AES Encrypt/Decrypt
 
+-Many hash functions (SHA256 is given as example)
+
 -Base64 Encoded/Decode
 
 -URL Safe Base64 Alternative (Replaces unsafe url control characters with unused ones)
@@ -18,3 +20,5 @@ Provides:
 -Display of PEM KeyPairs at runtime
 
 -C++ std::string wrappers to all functions
+
+To use the other hash functions simply change "SHA256" in the call to EVP_get_digestbyname to any other that openssl accepts
