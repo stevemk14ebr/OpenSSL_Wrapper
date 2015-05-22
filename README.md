@@ -21,4 +21,4 @@ Provides:
 
 -C++ std::string wrappers to all functions
 
-To use the other hash functions simple change "SHA256" in call to EVP_get_digestbyname to any other that openssl accepts
+To use the other hash functions simply change "SHA256" in the call to EVP_get_digestbyname to any other that openssl accepts
